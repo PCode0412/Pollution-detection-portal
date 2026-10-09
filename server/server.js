@@ -47,16 +47,24 @@ async function startServer() {
     }
   } catch (e) {
     console.log("[DB] Initializing database tables...");
-    const execSeed = require('child_process').fork('./scripts/seed_data.js');
+    try {
+      const execSeed = require('child_process').fork('./scripts/seed_data.js');
+    } catch(err) {
+      console.log("[DB] Seed script skipped or handled in serverless environment");
+    }
   }
 
-  app.listen(PORT, () => {
-    console.log(`=======================================================`);
-    console.log(`  Plastic Pollution Portal Express API Server Running  `);
-    console.log(`  PORT: ${PORT} | Mode: ${process.env.NODE_ENV || 'development'} `);
-    console.log(`  DB Engine: ${db.getDbType().toUpperCase()} `);
-    console.log(`=======================================================`);
-  });
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    app.listen(PORT, () => {
+      console.log(`=======================================================`);
+      console.log(`  Plastic Pollution Portal Express API Server Running  `);
+      console.log(`  PORT: ${PORT} | Mode: ${process.env.NODE_ENV || 'development'} `);
+      console.log(`  DB Engine: ${db.getDbType().toUpperCase()} `);
+      console.log(`=======================================================`);
+    });
+  }
 }
 
 startServer();
+
+module.exports = app;
